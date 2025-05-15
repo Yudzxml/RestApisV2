@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const router = express.Router();
 
-const cache = new Map(); // simple cache { task_id: result }
+const cache = new Map(); // { task_id: { data, timeoutId } }
 
 function validateMediaLink(url, format, quality) {
   try {
@@ -33,7 +33,7 @@ const base = {
 
 async function pollDownload(task_id, maxTries = 20, interval = 500) {
   if (cache.has(task_id)) {
-    return cache.get(task_id);
+    return cache.get(task_id).data;
   }
 
   for (let i = 0; i < maxTries; i++) {
@@ -42,11 +42,18 @@ async function pollDownload(task_id, maxTries = 20, interval = 500) {
       const data = response.data;
 
       if (data.status === "Success") {
-        cache.set(task_id, data); // simpan cache
+        // Hapus timeout sebelumnya jika ada
+        if (cache.has(task_id)) clearTimeout(cache.get(task_id).timeoutId);
+
+        const timeoutId = setTimeout(() => {
+          cache.delete(task_id);
+        }, 60 * 1000); // hapus cache setelah 60 detik
+
+        cache.set(task_id, { data, timeoutId });
+
         return data;
       }
     } catch (e) {
-      // Bisa log error, tapi tetap coba polling ulang
       console.error("Error polling:", e.message);
     }
     await new Promise(res => setTimeout(res, interval));
