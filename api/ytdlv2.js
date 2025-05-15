@@ -167,8 +167,7 @@ router.get('/', async (req, res) => {
             status: 200,
             author: 'Yudzxml',
             data: {
-                videoInfo: response,
-                downloadLink
+               downloadUrl: downloadLink.videoLinks
             }
         });
     } catch (err) {
