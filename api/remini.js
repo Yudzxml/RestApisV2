@@ -1,7 +1,7 @@
 import express from 'express';
 import axios from 'axios';
 import qs from 'qs';
-import { fromBuffer } from 'file-type';
+import fileType from 'file-type';
 
 const router = express.Router();
 const tool = ['removebg', 'enhance', 'upscale', 'restore', 'colorize'];
@@ -30,6 +30,7 @@ const pxpic = {
 
     return sourceFileUrl;
   },
+
   create: async (url, tools) => {
     if (!tool.includes(tools)) {
       return { status: 400, error: `Pilih salah satu dari tools ini: ${tool.join(', ')}` };
@@ -44,7 +45,7 @@ const pxpic = {
       }
 
       const buffer = Buffer.from(response.data);
-      const { mime } = await fromBuffer(buffer) || {};
+      const { mime } = await fileType.fromBuffer(buffer) || {};
 
       if (!mime) {
         throw new Error('Tipe gambar tidak dapat ditentukan.');
@@ -52,18 +53,18 @@ const pxpic = {
 
       const imageUrl = await pxpic.upload(buffer, mime);
 
-      let data = qs.stringify({
-        'imageUrl': imageUrl,
-        'targetFormat': 'png',
-        'needCompress': 'no',
-        'imageQuality': '100',
-        'compressLevel': '6',
-        'fileOriginalExtension': mime.split('/')[1],
-        'aiFunction': tools,
-        'upscalingLevel': ''
+      const data = qs.stringify({
+        imageUrl: imageUrl,
+        targetFormat: 'png',
+        needCompress: 'no',
+        imageQuality: '100',
+        compressLevel: '6',
+        fileOriginalExtension: mime.split('/')[1],
+        aiFunction: tools,
+        upscalingLevel: ''
       });
 
-      let config = {
+      const config = {
         method: 'POST',
         url: 'https://pxpic.com/callAiFunction',
         headers: {
@@ -81,11 +82,12 @@ const pxpic = {
         author: 'Yudzxml',
         data: api.data
       };
+
     } catch (err) {
       return { status: 400, error: err.message };
     }
   }
-}
+};
 
 router.get('/', async (req, res) => {
   const { url, tools } = req.query;
