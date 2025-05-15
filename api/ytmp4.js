@@ -15,10 +15,10 @@ function validateMediaLink(url, format, quality) {
   if (!validFormats.includes(format.toLowerCase())) return { valid: false, error: "Format harus audio atau video." };
 
   if (format.toLowerCase() === "audio") {
-    if (quality !== 128) return { valid: false, error: "Quality audio harus 128." };
+    if (parseInt(quality) !== 128) return { valid: false, error: "Quality audio harus 128." };
   } else {
     const validVideoQualities = [360, 480, 720, 1080, 1440];
-    if (!validVideoQualities.includes(quality)) return { valid: false, error: "Quality video harus salah satu dari 360, 480, 720, 1080, atau 1440." };
+    if (!validVideoQualities.includes(parseInt(quality))) return { valid: false, error: "Quality video harus salah satu dari 360, 480, 720, 1080, atau 1440." };
   }
 
   return { valid: true };
@@ -29,21 +29,21 @@ const base = {
   getDownload: "https://api.grabtheclip.com/get-download/"
 };
 
-router.post('/', async (req, res) => {
-  const { url, format, quality } = req.body;
+router.get('/', async (req, res) => {
+  const { url, format, quality } = req.query;
 
   if (!url || !format || !quality) {
     return res.status(400).json({ error: 'url, format, dan quality harus diisi' });
   }
 
-  const validation = validateMediaLink(url, format, quality);
+  const validation = validateMediaLink(url, format, parseInt(quality));
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
   }
 
   try {
     const payload = {
-      height: quality,
+      height: parseInt(quality),
       media_type: format,
       url: url
     };
