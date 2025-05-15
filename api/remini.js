@@ -1,7 +1,6 @@
 import express from 'express';
 import axios from 'axios';
 import qs from 'qs';
-import fileType from 'file-type';
 
 const router = express.Router();
 const tool = ['removebg', 'enhance', 'upscale', 'restore', 'colorize'];
@@ -45,7 +44,8 @@ const pxpic = {
       }
 
       const buffer = Buffer.from(response.data);
-      const { mime } = await fileType.fromBuffer(buffer) || {};
+      const fileType = await import('file-type');
+      const { mime } = await fileType.fileTypeFromBuffer(buffer) || {};
 
       if (!mime) {
         throw new Error('Tipe gambar tidak dapat ditentukan.');
