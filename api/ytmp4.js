@@ -3,6 +3,8 @@ import axios from 'axios';
 
 const router = express.Router();
 
+const cache = new Map(); // simple cache { task_id: result }
+
 function validateMediaLink(url, format, quality) {
   try {
     const parsedUrl = new URL(url);
@@ -29,6 +31,30 @@ const base = {
   getDownload: "https://api.grabtheclip.com/get-download/"
 };
 
+async function pollDownload(task_id, maxTries = 20, interval = 500) {
+  if (cache.has(task_id)) {
+    return cache.get(task_id);
+  }
+
+  for (let i = 0; i < maxTries; i++) {
+    try {
+      const response = await axios.get(base.getDownload + task_id);
+      const data = response.data;
+
+      if (data.status === "Success") {
+        cache.set(task_id, data); // simpan cache
+        return data;
+      }
+    } catch (e) {
+      // Bisa log error, tapi tetap coba polling ulang
+      console.error("Error polling:", e.message);
+    }
+    await new Promise(res => setTimeout(res, interval));
+  }
+
+  throw new Error('Timeout polling download');
+}
+
 router.get('/', async (req, res) => {
   const { url, format, quality } = req.query;
 
@@ -50,14 +76,7 @@ router.get('/', async (req, res) => {
 
     const { data: { task_id } } = await axios.post(base.submitDownload, payload);
 
-    let d;
-    do {
-      const ress = await axios.get(base.getDownload + task_id);
-      d = ress.data;
-      if (d.status !== "Success") {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    } while (d.status !== "Success");
+    const d = await pollDownload(task_id);
 
     return res.status(200).json({
       author: "Yudzxml",
