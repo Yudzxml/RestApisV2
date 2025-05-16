@@ -57,7 +57,7 @@ router.post('/create-panel', async (req, res) => {
 
     const serverRes = await axios.post(`${PANEL_DOMAIN}/api/application/servers`, {
       name: username,
-      description: 'Created via API',
+      description: 'YUDZXML STORE 77',
       user: userId,
       egg: 15,
       docker_image: 'ghcr.io/parkervcp/yolks:nodejs_18',
