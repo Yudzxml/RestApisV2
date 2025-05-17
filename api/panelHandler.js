@@ -20,6 +20,19 @@ const ramConfig = {
   'unli': { ram: '0', disk: '0', cpu: '0' }
 };
 
+function formatTanggal(date) {
+  const bulanNama = [
+  'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI',
+  'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'
+];
+
+  const day = date.getDate();
+  const month = date.getMonth(); // 0-11
+  const year = date.getFullYear();
+
+  return `${day} - ${bulanNama[month]} - ${year}`;
+}
+
 // CREATE PANEL
 router.post('/create-panel', async (req, res) => {
   try {
@@ -85,17 +98,20 @@ router.post('/create-panel', async (req, res) => {
       }
     });
 
-    res.json({
-      success: true,
-      username,
-      email,
-      password,
-      userId,
-      serverId: serverRes.data.attributes.id,
-      ram: config.ram,
-      disk: config.disk,
-      cpu: config.cpu
-    });
+const createdAtFormatted = formatTanggal(new Date());
+
+res.json({
+  success: true,
+  username,
+  email,
+  password,
+  userId,
+  serverId: serverRes.data.attributes.id,
+  ram: config.ram,
+  disk: config.disk,
+  cpu: config.cpu,
+  createdAt: createdAtFormatted
+});
 
   } catch (error) {
     res.status(500).json({ error: error.message });
