@@ -61,7 +61,7 @@ router.get('/', async (req, res) => {
     const { csrfToken, cookies } = await fetchInitialPage(initialUrl);
     const result = await postDownloadRequest(downloadUrl, url, csrfToken, cookies);
 
-    res.status(200).json({ success: true, data: result });
+    res.status(200).json({ status: 200, author: "Yudzxml", data: result });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
