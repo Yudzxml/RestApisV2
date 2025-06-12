@@ -3,14 +3,14 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import cors from 'cors';  // Import CORS
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Middleware parsing body
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -28,7 +28,7 @@ const loadRoutes = async () => {
 };
 
 app.get('/', (req, res) => {
-  res.send('Multi API Server Aktif (ESM)');
+  res.send('NGAPAIN HAYO ( YUDZXML API )');
 });
 
 loadRoutes().then(() => {
