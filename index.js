@@ -3,13 +3,27 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import cors from 'cors';  // Import CORS
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: {
+    status: 429,
+    error: 'Too many requests, please try again after 1 minute.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api', limiter);
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -31,10 +45,12 @@ app.get('/', (req, res) => {
   res.send('NGAPAIN HAYO ( YUDZXML API )');
 });
 
-loadRoutes().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server berjalan di http://localhost:${PORT}`);
+loadRoutes()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server berjalan di http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Gagal load API routes:', err);
   });
-}).catch((err) => {
-  console.error('Gagal load API routes:', err);
-});

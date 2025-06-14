@@ -1,5 +1,5 @@
 {
-  "name": "multi-api-server-esm",
+  "name": "API BY YUDZXML",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,9 @@
     "file-type": "^18.0.0",
     "qs": "^6.11.2",
     "yt-search": "^2.13.1",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "javascript-obfuscator": "^4.1.1",
+    "multer": "^2.0.1",
+    "express-rate-limit": "^7.5.0"
   }
 }
