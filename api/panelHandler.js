@@ -5,15 +5,10 @@ const router = express.Router();
 
 const PANEL_DOMAIN = process.env.PANEL_DOMAIN;
 const PANEL_API_KEY = process.env.PANEL_API_KEY;
-// Baca satu atau banyak origin:
 const ALLOWED_DOMAIN = (process.env.ALLOWED_DOMAIN || '').split(',').map(o => o.trim()).filter(Boolean);
-
-// Middleware untuk membatasi origin
 function onlyFromAllowedOrigins(req, res, next) {
   const origin = req.get('Origin') || req.get('Referer') || '';
-  // Jika tidak ada konfigurasi origin, izinkan semua (fallback)
   if (ALLOWED_DOMAIN.length === 0) return next();
-  // Cek apakah origin sesuai satu di list
   const isAllowed = ALLOWED_DOMAIN.some(allowed => origin === allowed || origin.startsWith(allowed));
   if (isAllowed) {
     return next();
@@ -46,7 +41,6 @@ function formatTanggal(date) {
   return `${day} - ${bulanNama[month]} - ${year}`;
 }
 
-// CREATE PANEL: hanya dari origin yang diizinkan
 router.post(
   '/create-panel',
   onlyFromAllowedOrigins,
@@ -75,23 +69,55 @@ router.post(
         `${PANEL_DOMAIN}/api/application/nests/5/eggs/15`,
         { headers: { Authorization: `Bearer ${PANEL_API_KEY}`, Accept: 'application/json' } }
       );
-
-      const serverRes = await axios.post(
-        `${PANEL_DOMAIN}/api/application/servers`,
-        {
-          name: username,
-          description: 'YUDZXML STORE 77',
-          user: userId,
-          egg: 15,
-          docker_image: 'ghcr.io/parkervcp/yolks:nodejs_18',
-          startup: eggRes.data.attributes.startup,
-          environment: { INST: 'npm', USER_UPLOAD: '0', AUTO_UPDATE: '0', CMD_RUN: 'npm start' },
-          limits: { memory: config.ram, swap: 0, disk: config.disk, io: 500, cpu: config.cpu },
-          feature_limits: { databases: 0, backups: 0, allocations: 0 },
-          deploy: { locations: [1], dedicated_ip: false, port_range: [] }
-        },
-        { headers: { Authorization: `Bearer ${PANEL_API_KEY}`, Accept: 'application/json', 'Content-Type': 'application/json' } }
-      );
+const today = new Date();
+const expDate = new Date(today);
+expDate.setDate(expDate.getDate() + 30);
+const day   = String(expDate.getDate()).padStart(2, '0');
+const month = expDate.toLocaleString('default', { month: 'short' }).toUpperCase(); 
+const year  = expDate.getFullYear();
+const formattedExp = `${day} ${month} ${year}`;
+const descriptionText = `EXP ${formattedExp}`;
+const serverRes = await axios.post(
+  `${PANEL_DOMAIN}/api/application/servers`,
+  {
+    name: username,
+    description: descriptionText,
+    user: userId,
+    egg: 15,
+    docker_image: 'ghcr.io/parkervcp/yolks:nodejs_18',
+    startup: eggRes.data.attributes.startup,
+    environment: {
+      INST: 'npm',
+      USER_UPLOAD: '0',
+      AUTO_UPDATE: '0',
+      CMD_RUN: 'npm start'
+    },
+    limits: {
+      memory: config.ram,
+      swap: 0,
+      disk: config.disk,
+      io: 500,
+      cpu: config.cpu
+    },
+    feature_limits: {
+      databases: 0,
+      backups: 0,
+      allocations: 0
+    },
+    deploy: {
+      locations: [1],
+      dedicated_ip: false,
+      port_range: []
+    }
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${PANEL_API_KEY}`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    }
+  }
+);
 
       const createdAtFormatted = formatTanggal(new Date());
 
@@ -114,7 +140,6 @@ router.post(
   }
 );
 
-// DELETE PANEL: bebas dari origin
 router.post('/delete-panel', async (req, res) => {
   try {
     const { userId, serverId } = req.body;
