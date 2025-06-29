@@ -12,6 +12,12 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cors());
+
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
@@ -21,17 +27,13 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.ip,
 });
-
 app.use('/api', limiter);
-app.use(cors());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
 
 const loadRoutes = async () => {
   const apiDir = path.join(__dirname, 'api');
   const files = fs.readdirSync(apiDir);
-
   for (const file of files) {
     if (!file.endsWith('.js')) continue;
     const routeName = file.replace('.js', '');
