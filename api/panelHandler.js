@@ -163,4 +163,16 @@ router.post('/delete-panel', async (req, res) => {
   }
 });
 
+router.get('/health', async (req, res) => {
+  try {
+    const response = await axios.get(`${PANEL_DOMAIN}/api/application/users`, {
+      headers: { Authorization: `Bearer ${PANEL_API_KEY}` }
+    });
+
+    return res.json({ active: true, maintenance: false });
+  } catch (error) {
+    return res.json({ active: false, maintenance: true });
+  }
+});
+
 export default router;
